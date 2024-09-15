@@ -10,90 +10,130 @@
     <div class="container">
         <header>
             <h1>To-Do List</h1>
-            <p>Organize your tasks efficiently</p>
+            <p>Keep track of your tasks easily.</p>
         </header>
 
-        <section class="task-input">
-            <form id="todoForm">
-                <input type="text" name="task" id="taskInput" placeholder="Enter a new task" required>
+        <!-- Task Input Form -->
+        <div class="task-input">
+            <form id="todoForm" action="/add" method="POST">
+                <input type="text" name="task" id="taskInput" placeholder="Enter a task" required>
                 <button type="submit">Add Task</button>
             </form>
-        </section>
+        </div>
 
-        <section class="task-lists-container">
-            <!-- Pending Tasks -->
+        <!-- Task Lists -->
+        <div class="task-lists-container">
             <div class="task-section pending-tasks">
                 <h2>Pending Tasks</h2>
                 <ul id="pendingList">
-                    <!-- Pending tasks will be dynamically populated here -->
+                    <!-- Pending tasks will be added here -->
                 </ul>
             </div>
-
-            <!-- Completed Tasks -->
             <div class="task-section completed-tasks">
                 <h2>Completed Tasks</h2>
                 <ul id="completedList">
-                    <!-- Completed tasks will be dynamically populated here -->
+                    <!-- Completed tasks will be added here -->
                 </ul>
             </div>
-        </section>
+        </div>
     </div>
 
     <script>
-        document.getElementById('todoForm').addEventListener('submit', function(e) {
-            e.preventDefault();  // Prevent page from reloading
-
+        document.addEventListener('DOMContentLoaded', function() {
+            const taskForm = document.getElementById('todoForm');
             const taskInput = document.getElementById('taskInput');
-            const taskValue = taskInput.value.trim();
+            const pendingList = document.getElementById('pendingList');
+            const completedList = document.getElementById('completedList');
 
-            if (taskValue !== '') {
-                addTask(taskValue);
-                taskInput.value = '';  // Clear input field
-            } else {
-                alert('Please enter a task.');
+            // Adding a task
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const taskText = taskInput.value.trim();
+                if (taskText !== '') {
+                    addTask(taskText, pendingList);
+                    taskInput.value = ''; // Clear input field after adding
+                }
+            });
+
+            // Function to create task with Edit and Delete buttons
+            function addTask(taskText, targetList, isCompleted = false) {
+                const taskItem = document.createElement('li');
+                taskItem.innerHTML = `
+                    <div class="task-content">
+                        <input type="checkbox" class="task-checkbox" ${isCompleted ? 'checked' : ''}>
+                        <span class="task-text">${taskText}</span>
+                        <div class="task-actions">
+                            <button class="edit-task">Edit</button>
+                            <button class="delete-task">Delete</button>
+                        </div>
+                    </div>
+                `;
+
+                // Add to the list
+                targetList.appendChild(taskItem);
+
+                // Handle task completion
+                const checkbox = taskItem.querySelector('.task-checkbox');
+                checkbox.addEventListener('change', function() {
+                    if (checkbox.checked) {
+                        moveTaskToCompleted(taskItem);
+                    } else {
+                        moveTaskToPending(taskItem);
+                    }
+                });
+
+                // Handle task edit
+                const editButton = taskItem.querySelector('.edit-task');
+                editButton.addEventListener('click', function() {
+                    const taskTextSpan = taskItem.querySelector('.task-text');
+                    editTask(taskTextSpan, taskItem);
+                });
+
+                // Handle task delete
+                const deleteButton = taskItem.querySelector('.delete-task');
+                deleteButton.addEventListener('click', function() {
+                    taskItem.remove();
+                });
+            }
+
+            // Function to edit task text inline
+            function editTask(taskTextSpan, taskItem) {
+                const originalText = taskTextSpan.textContent;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = originalText;
+                taskTextSpan.replaceWith(input);
+                input.focus();
+
+                // Save changes when user hits 'Enter' or loses focus
+                input.addEventListener('blur', saveTaskEdit);
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        saveTaskEdit();
+                    }
+                });
+
+                function saveTaskEdit() {
+                    const newText = input.value.trim();
+                    const newTaskTextSpan = document.createElement('span');
+                    newTaskTextSpan.classList.add('task-text');
+                    newTaskTextSpan.textContent = newText || originalText; // Keep original text if input is empty
+                    input.replaceWith(newTaskTextSpan);
+                }
+            }
+
+            // Move task to Completed
+            function moveTaskToCompleted(taskItem) {
+                taskItem.querySelector('.task-checkbox').checked = true;
+                completedList.appendChild(taskItem);
+            }
+
+            // Move task back to Pending
+            function moveTaskToPending(taskItem) {
+                taskItem.querySelector('.task-checkbox').checked = false;
+                pendingList.appendChild(taskItem);
             }
         });
-
-        function addTask(taskValue) {
-            const newTask = document.createElement('li');
-            newTask.innerHTML = `
-                <div class="task-content">
-                    <input type="checkbox" class="task-checkbox" onclick="toggleTask(this)">
-                    <span class="task-text">${taskValue}</span>
-                    <div class="task-actions">
-                        <button class="edit-task" onclick="editTask(this)">Edit</button>
-                        <button class="delete-task" onclick="deleteTask(this)">Delete</button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('pendingList').appendChild(newTask);
-        }
-
-        function toggleTask(checkbox) {
-            const task = checkbox.parentNode;
-            const taskText = task.querySelector('.task-text');
-
-            if (checkbox.checked) {
-                taskText.classList.add('completed');
-                document.getElementById('completedList').appendChild(task.parentNode);
-            } else {
-                taskText.classList.remove('completed');
-                document.getElementById('pendingList').appendChild(task.parentNode);
-            }
-        }
-
-        function deleteTask(button) {
-            const task = button.parentNode.parentNode.parentNode;
-            task.remove();
-        }
-
-        function editTask(button) {
-            const taskText = button.parentNode.parentNode.querySelector('.task-text');
-            const newTaskValue = prompt('Edit your task:', taskText.textContent);
-            if (newTaskValue) {
-                taskText.textContent = newTaskValue;
-            }
-        }
     </script>
 </body>
 </html>

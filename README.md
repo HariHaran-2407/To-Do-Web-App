@@ -21,7 +21,7 @@ A simple, minimalistic To-Do List web application that helps you manage your tas
 ## Figma Mock Design
 
 You can view the Figma mock design for this project [here](https://www.figma.com/design/WXU96oPW34YAEvt6X1Qafx/Untitled?node-id=0-1&t=1B7EB1L6VFJxvEWj-1).
-![MockDesign](todo/MockDesign.png)
+![MockDesign](todo/Images/MockDesign.png)
 
 
 
